@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Safety Resources - SafeReady</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body
+    class="bg-gray-50"
+    x-data="{ 
+          activeTab: 'cpr', 
+          showModal: false, 
+          currentProcedure: null,
+          currentStep: 1,
+          searchQuery: '',
+          procedures: null
+      }"
+    x-init="procedures = $store.procedures"
+  >
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800">
+      <nav
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+      >
+        <div class="flex items-center space-x-4">
+          <h1 class="text-2xl font-bold text-white">SafeReady</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+          <a href="dashboard.html" class="text-white hover:text-blue-200"
+            >Dashboard</a
+          >
+          <a href="#" class="text-white hover:text-blue-200">Resources</a>
+          <button
+            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+          >
+            Emergency
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <!-- Hero Section -->
+      <div class="bg-blue-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="text-4xl font-bold mb-4">First Aid & Safety Resources</h2>
+          <p class="text-xl text-blue-100">
+            Learn essential life-saving procedures and emergency response
+            techniques
+          </p>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div class="bg-white rounded-lg shadow-lg p-4">
+          <div class="relative">
+            <input
+              type="text"
+              x-model="searchQuery"
+              placeholder="Search procedures..."
+              class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Tabs -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <nav class="flex space-x-4">
+          <template x-for="category in ['cpr', 'burns', 'cuts', 'choking']">
+            <button
+              @click="activeTab = category"
+              :class="{'bg-blue-600 text-white': activeTab === category}"
+              class="px-4 py-2 rounded-lg capitalize"
+            >
+              <span x-text="category"></span>
+            </button>
+          </template>
+        </nav>
+      </div>
+
+      <!-- Procedures Grid -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <template
+            x-for="procedure in procedures[activeTab]"
+            :key="procedure.id"
+          >
+            <div
+              class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <img
+                :src="procedure.image"
+                :alt="procedure.title"
+                class="w-full h-48 object-cover rounded-t-xl"
+              />
+              <div class="p-6">
+                <h3 class="text-xl font-bold" x-text="procedure.title"></h3>
+                <p
+                  class="text-gray-600 mt-2"
+                  x-text="procedure.description"
+                ></p>
+                <div class="mt-4 flex justify-between items-center">
+                  <button
+                    @click="currentProcedure = procedure; showModal = true"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    View Steps
+                  </button>
+                  <span class="text-sm text-gray-500">
+                    <i class="fas fa-clock mr-1"></i>
+                    <span x-text="procedure.duration"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </main>
+
+    <!-- Procedure Modal -->
+    <div
+      x-show="showModal"
+      x-transition
+      class="fixed inset-0 z-50 overflow-hidden bg-black bg-opacity-50 flex items-center justify-center"
+    >
+      <div
+        class="bg-white rounded-xl max-w-4xl w-full mx-4 shadow-2xl flex flex-col max-h-[90vh]"
+      >
+        <!-- Fixed Header -->
+        <div class="p-6 border-b border-gray-200 flex-shrink-0">
+          <div class="flex justify-between items-center">
+            <h3
+              class="text-2xl font-bold"
+              x-text="currentProcedure?.title"
+            ></h3>
+            <button
+              @click="showModal = false"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <!-- Progress Bar -->
+          <div class="mt-4 h-2 bg-gray-200 rounded-full">
+            <div
+              class="h-full bg-blue-600 rounded-full transition-all duration-300"
+              :style="`width: ${(currentStep / currentProcedure?.steps.length) * 100}%`"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="overflow-y-auto flex-grow p-6 space-y-8 custom-scrollbar">
+          <template
+            x-for="(step, index) in currentProcedure?.steps"
+            :key="index"
+          >
+            <div
+              class="flex items-start space-x-4"
+              :class="{'opacity-50': currentStep !== index + 1}"
+            >
+              <div class="flex-shrink-0">
+                <span
+                  class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center"
+                  x-text="index + 1"
+                ></span>
+              </div>
+              <div class="flex-grow">
+                <h4 class="font-medium text-xl" x-text="step.title"></h4>
+                <p class="text-gray-600 mt-2" x-text="step.description"></p>
+                <img
+                  x-if="step.image"
+                  :src="step.image"
+                  :alt="step.title"
+                  class="mt-4 rounded-lg w-full object-cover shadow-md"
+                />
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Fixed Footer Navigation -->
+        <div
+          class="p-4 border-t border-gray-200 flex justify-between items-center flex-shrink-0"
+        >
+          <button
+            @click="currentStep = Math.max(1, currentStep - 1)"
+            class="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            <i class="fas fa-arrow-left mr-2"></i> Previous
+          </button>
+          <span class="text-gray-500"
+            >Step <span x-text="currentStep"></span> of
+            <span x-text="currentProcedure?.steps.length"></span
+          ></span>
+          <button
+            @click="currentStep = Math.min(currentProcedure?.steps.length, currentStep + 1)"
+            class="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            Next <i class="fas fa-arrow-right ml-2"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 3px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+      }
+    </style>
+
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("procedures", {
+          cpr: [
+            {
+              id: 1,
+              title: "Adult CPR",
+              description: "Learn how to perform CPR on adults",
+              duration: "5 min",
+              image: "images/adult-cpr.jpg",
+              steps: [
+                {
+                  title: "Check Scene Safety & Responsiveness",
+                  description:
+                    "Ensure the area is safe. Tap and shout 'Are you OK?' Check for response.",
+                  image : {
+                    src: "./images/OK.webp",
+                    width : "300",
+                    height : "200",
+                  },
+                },
+                {
+                  title: "Call Emergency Services (112)",
+                  description:
+                    "If unresponsive, call 112 immediately or ask someone else to call. Get an AED if available.",
+                  image: "112-emergency",
+                },
+                {
+                  title: "Check Breathing",
+                  description:
+                    "Look for chest movement, listen for breath sounds, feel for air. Take no more than 10 seconds.",
+                  image: "images/check-breathing.jpg",
+                },
+                {
+                  title: "Begin Chest Compressions",
+                  description:
+                    "Place hands on center of chest. Push hard and fast: 100-120 compressions per minute. Allow chest to fully recoil.",
+                  image: "images/chest-compression.jpg",
+                },
+                {
+                  title: "Give Rescue Breaths",
+                  description:
+                    "After 30 compressions, give 2 rescue breaths. Tilt head back, lift chin, pinch nose. Each breath should last 1 second.",
+                  image: "images/rescue-breaths.jpg",
+                },
+                {
+                  title: "Continue CPR Cycle",
+                  description:
+                    "Maintain 30:2 ratio of compressions to breaths. Continue until help arrives or person shows signs of life.",
+                  image: "images/cpr-cycle.jpg",
+                },
+                {
+                  title: "Recovery Position",
+                  description:
+                    "If breathing returns, place person in recovery position on their side with top leg and arm bent for support.",
+                  image: "images/recovery.jpg",
+                },
+              ],
+            },
+            // Add more procedures
+          ],
+          burns: [
+            {
+              id: 1,
+              title: "Thermal Burns Treatment",
+              description: "Learn how to treat heat and fire-related burns",
+              duration: "4 min",
+              image: "images/thermal-burns.jpg",
+              steps: [
+                {
+                  title: "Ensure Safety",
+                  description:
+                    "Stop the burning process. Remove person from heat source. Remove any smoldering clothing unless stuck to burn.",
+                  image: "images/burn-safety.jpg",
+                },
+                {
+                  title: "Assess Burn Severity",
+                  description:
+                    "Check burn size and depth. First-degree: red skin only. Second-degree: blisters. Third-degree: white/charred skin.",
+                  image: "images/burn-assessment.jpg",
+                },
+                {
+                  title: "Cool the Burn",
+                  description:
+                    "Run cool (not cold) water over the burn for 10-20 minutes. Don't use ice or very cold water.",
+                  image: "images/cool-burn.jpg",
+                },
+                {
+                  title: "Remove Constricting Items",
+                  description:
+                    "Carefully remove jewelry, watches, belts or other tight items from burned area before swelling occurs.",
+                  image: "images/remove-items.jpg",
+                },
+                {
+                  title: "Cover the Burn",
+                  description:
+                    "Apply sterile, non-stick gauze bandage. Wrap loosely to avoid putting pressure on burned skin.",
+                  image: "images/cover-burn.jpg",
+                },
+                {
+                  title: "Pain Management",
+                  description:
+                    "Take over-the-counter pain relievers. Don't apply creams, butter, or ointments to serious burns.",
+                  image: "images/burn-pain.jpg",
+                },
+                {
+                  title: "Seek Medical Care",
+                  description:
+                    "Get emergency help for large or severe burns. Watch for signs of infection in minor burns.",
+                  image: "images/burn-medical.jpg",
+                },
+              ],
+            },
+            {
+              id: 2,
+              title: "Chemical Burns First Aid",
+              description: "Handle chemical burns safely and effectively",
+              duration: "3 min",
+              image: "images/chemical-burns.jpg",
+              steps: [
+                {
+                  title: "Remove Chemical Source",
+                  description:
+                    "Brush off dry chemicals. Remove contaminated clothing. Protect your hands with gloves.",
+                  image: "images/chemical-remove.jpg",
+                },
+                {
+                  title: "Flush with Water",
+                  description:
+                    "Rinse the area with cool running water for at least 20 minutes. Remove all traces of chemical.",
+                  image: "images/chemical-flush.jpg",
+                },
+                // Add more steps for chemical burns
+              ],
+            },
+          ],
+          cuts: [
+            {
+              id: 1,
+              title: "Minor Cuts & Scrapes",
+              description: "Treat small wounds to prevent infection",
+              duration: "2 min",
+              image: "images/minor-cuts.jpg",
+              steps: [
+                {
+                  title: "Clean Your Hands",
+                  description:
+                    "Wash hands thoroughly with soap and water before treating the wound.",
+                  image: "images/clean-hands.jpg",
+                },
+                {
+                  title: "Stop the Bleeding",
+                  description:
+                    "Apply gentle pressure with a clean cloth or bandage for a few minutes.",
+                  image: "images/stop-bleeding.jpg",
+                },
+                {
+                  title: "Clean the Wound",
+                  description:
+                    "Rinse the cut under cool water to remove dirt and debris. Avoid using hydrogen peroxide or alcohol.",
+                  image: "images/clean-wound.jpg",
+                },
+                {
+                  title: "Apply Antibiotic Ointment",
+                  description:
+                    "Apply a thin layer of antibiotic ointment to prevent infection.",
+                  image: "images/antibiotic-ointment.jpg",
+                },
+                {
+                  title: "Cover the Wound",
+                  description:
+                    "Use a sterile bandage or gauze pad to protect the wound from dirt and bacteria.",
+                  image: "images/cover-wound.jpg",
+                },
+                {
+                  title: "Change Dressings",
+                  description:
+                    "Change bandages daily or when wet or dirty. Watch for signs of infection.",
+                  image: "images/change-dressings.jpg",
+                },
+              ],
+            },
+            // Add more procedures
+          ],
+
+          choking: [
+            {
+              id: 1,
+              title: "Choking Response",
+              description: "Quick steps to help a choking adult",
+              duration: "2 min",
+              image: "images/choking.jpg",
+              steps: [
+                {
+                  title: "Confirm Choking",
+                  description:
+                    "Ask 'Are you choking?' Look for universal choking sign (hands at throat) and inability to speak.",
+                  image: "images/confirm-choking.jpg",
+                },
+                {
+                  title: "Give 5 Back Blows",
+                  description:
+                    "Stand slightly behind them, lean them forward, strike between shoulder blades with heel of hand.",
+                  image: "images/back-blows.jpg",
+                },
+                {
+                  title: "Perform Heimlich Maneuver",
+                  description:
+                    "Stand behind person, place fist above navel, grasp fist with other hand, give quick upward thrusts.",
+                  image: "images/heimlich.jpg",
+                },
+                {
+                  title: "Alternate Methods",
+                  description:
+                    "Switch between 5 back blows and 5 abdominal thrusts until object is expelled.",
+                  image: "images/alternate.jpg",
+                },
+                {
+                  title: "Call Emergency",
+                  description:
+                    "If person becomes unconscious, call 911 immediately and begin CPR if trained.",
+                  image: "images/emergency-call.jpg",
+                },
+              ],
+            },
+          ],
+        });
+      });
+    </script>
+  </body>
+</html>

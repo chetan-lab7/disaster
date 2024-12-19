@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Preparedness Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .checklist-container, .shops-container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .category {
+            margin-bottom: 2rem;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: #4299e1;
+            transition: width 0.3s ease;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #f8fafc;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .checklist-item:hover {
+            background: #edf2f7;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-right: 1rem;
+            width: 18px;
+            height: 18px;
+        }
+
+        .checklist-item label {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            background: #e2e8f0;
+            border: none;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #cbd5e0;
+        }
+
+        .quantity {
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .search-container {
+            margin-bottom: 1rem;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #3182ce;
+        }
+
+        .shop-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .shop-card {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f8fafc;
+            border-radius: 5px;
+            border-left: 4px solid #4299e1;
+        }
+
+        .shop-name {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .shop-details {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .shop-distance {
+            color: #718096;
+            font-size: 0.8rem;
+        }
+
+        .export-btn {
+            background: #48bb78;
+        }
+
+        .export-btn:hover {
+            background: #38a169;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Disaster Preparedness Tracker</h1>
+            <p>Track your emergency supplies and find nearby stores</p>
+        </div>
+
+        <div class="grid">
+            <div class="checklist-container">
+                <h2>Emergency Supplies Checklist</h2>
+                <button onclick="exportChecklist()" class="export-btn">Export Checklist</button>
+                <div id="checklistContent">
+                    <!-- Categories will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div class="shops-container">
+                <h2>Nearby Emergency Supply Stores</h2>
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="locationInput" placeholder="Enter your location">
+                        <button onclick="findNearbyShops()">Find Stores</button>
+                    </div>
+                </div>
+                <div id="shopList" class="shop-list">
+                    <!-- Shops will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Checklist data structure
+        const checklistData = {
+            "Water and Food": [
+                { item: "Water (1 gallon per person per day)", quantity: 0, required: 3 },
+                { item: "Non-perishable food", quantity: 0, required: 5 },
+                { item: "Manual can opener", quantity: 0, required: 1 },
+                { item: "Baby food and formula (if needed)", quantity: 0, required: 0 }
+            ],
+            "First Aid and Medical": [
+                { item: "First aid kit", quantity: 0, required: 1 },
+                { item: "Prescription medications", quantity: 0, required: 1 },
+                { item: "Face masks", quantity: 0, required: 10 },
+                { item: "Hand sanitizer", quantity: 0, required: 2 }
+            ],
+            "Tools and Supplies": [
+                { item: "Flashlight", quantity: 0, required: 2 },
+                { item: "Batteries", quantity: 0, required: 12 },
+                { item: "Mobile phone with chargers", quantity: 0, required: 1 },
+                { item: "Emergency blankets", quantity: 0, required: 2 },
+                { item: "Multi-tool", quantity: 0, required: 1 }
+            ],
+            "Documents": [
+                { item: "ID and important documents", quantity: 0, required: 1 },
+                { item: "Emergency contact list", quantity: 0, required: 1 },
+                { item: "Cash and change", quantity: 0, required: 1 },
+                { item: "Insurance policies", quantity: 0, required: 1 }
+            ]
+        };
+
+        // Initialize the checklist
+        function initializeChecklist() {
+            const checklistContent = document.getElementById('checklistContent');
+            checklistContent.innerHTML = '';
+
+            Object.entries(checklistData).forEach(([category, items]) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                
+                // Calculate progress
+                const totalRequired = items.reduce((sum, item) => sum + item.required, 0);
+                const totalCompleted = items.reduce((sum, item) => sum + Math.min(item.quantity, item.required), 0);
+                const progress = totalRequired > 0 ? (totalCompleted / totalRequired) * 100 : 0;
+
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <h3>${category}</h3>
+                        <span>${Math.round(progress)}% Complete</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="items">
+                        ${items.map((item, index) => `
+                            <div class="checklist-item">
+                                <input type="checkbox" 
+                                    id="${category}-${index}"
+                                    ${item.quantity >= item.required && item.required > 0 ? 'checked' : ''}
+                                    onclick="return false;">
+                                <label for="${category}-${index}">${item.item}</label>
+                                <div class="quantity-control">
+                                    <button class="quantity-btn" onclick="updateQuantity('${category}', ${index}, -1)">-</button>
+                                    <span class="quantity">${item.quantity}</span>
+                                    <button class="quantity-btn" onclick="updateQuantity('${category}', ${index}, 1)">+</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                checklistContent.appendChild(categoryDiv);
+            });
+        }
+
+        // Update item quantity
+        function updateQuantity(category, index, change) {
+            const item = checklistData[category][index];
+            item.quantity = Math.max(0, item.quantity + change);
+            saveToLocalStorage();
+            initializeChecklist();
+        }
+
+        // Save checklist data to localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('disasterChecklist', JSON.stringify(checklistData));
+        }
+
+        // Load checklist data from localStorage
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('disasterChecklist');
+            if (saved) {
+                Object.assign(checklistData, JSON.parse(saved));
+            }
+        }
+
+        // Export checklist as CSV
+        function exportChecklist() {
+            let csv = 'Category,Item,Quantity,Required,Status\n';
+            
+            Object.entries(checklistData).forEach(([category, items]) => {
+                items.forEach(item => {
+                    const status = item.quantity >= item.required ? 'Complete' : 'Incomplete';
+                    csv += `"${category}","${item.item}",${item.quantity},${item.required},"${status}"\n`;
+                });
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'disaster_preparedness_checklist.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Find nearby shops using OpenStreetMap Nominatim API
+        async function findNearbyShops() {
+            const location = document.getElementById('locationInput').value;
+            const shopList = document.getElementById('shopList');
+            
+            shopList.innerHTML = '<p>Searching for nearby stores...</p>';
+
+            try {
+                // First, geocode the location
+                const geocodeResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`);
+                const geocodeData = await geocodeResponse.json();
+
+                if (geocodeData.length === 0) {
+                    shopList.innerHTML = '<p>Location not found. Please try a different search.</p>';
+                    return;
+                }
+
+                const { lat, lon } = geocodeData[0];
+
+                // Then, search for nearby shops
+                const shopsResponse = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=supermarket+pharmacy+hardware&viewbox=${lon-0.1},${lat-0.1},${lon+0.1},${lat+0.1}`
+                );
+                const shopsData = await shopsResponse.json();
+
+                if (shopsData.length === 0) {
+                    shopList.innerHTML = '<p>No stores found nearby. Try expanding your search area.</p>';
+                    return;
+                }
+
+                // Display shops
+                shopList.innerHTML = shopsData
+                    .slice(0, 10)
+                    .map(shop => `
+                        <div class="shop-card">
+                            <div class="shop-name">${shop.display_name.split(',')[0]}</div>
+                            <div class="shop-details">${shop.display_name}</div>
+                            <div class="shop-distance">
+                                <i data-lucide="map-pin"></i>
+                                ${calculateDistance(lat, lon, shop.lat, shop.lon).toFixed(2)} km away
+                            </div>
+                        </div>
+                    `)
+                    .join('');
+
+                lucide.createIcons();
+
+            } catch (error) {
+                shopList.innerHTML = '<p>Error finding stores. Please try again later.</p>';
+                console.error('Error:', error);
+            }
+        }
+
+        // Calculate distance between two points using Haversine formula
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            initializeChecklist();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

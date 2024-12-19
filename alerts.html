@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Disaster Alert System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            color: #1a1a1a;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .search-container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .coordinates {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .alerts-container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .alert-card {
+            background: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+        }
+
+        .alert-card.EQ {
+            border-left-color: #dc3545;
+        }
+
+        .alert-card.FL {
+            border-left-color: #0077c2;
+        }
+
+        .alert-card.TC {
+            border-left-color: #6c757d;
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-type {
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+
+        .alert-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .alert-location {
+            color: #444;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-severity {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-right: 0.5rem;
+        }
+
+        .severity-Red {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .severity-Orange {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .severity-Green {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .data-sources {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .map-container {
+            height: 300px;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .search-box, .coordinates {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>India Disaster Alert System</h1>
+            <p>Real-time disaster alerts powered by GDACS and OpenWeather</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="locationInput" placeholder="Enter city name (e.g., Mumbai, Delhi)">
+                <button onclick="searchLocation()">Search Location</button>
+            </div>
+            <div class="coordinates">
+                <input type="number" id="latInput" placeholder="Latitude" step="0.000001">
+                <input type="number" id="lonInput" placeholder="Longitude" step="0.000001">
+                <button onclick="searchByCoordinates()">Search by Coordinates</button>
+            </div>
+        </div>
+
+        <div class="alerts-container" id="alertsContainer">
+            <!-- Alerts will be dynamically inserted here -->
+        </div>
+
+        <div class="data-sources">
+            Data sources: GDACS (Global Disaster Alert and Coordination System), OpenWeather API
+        </div>
+    </div>
+
+    <script>
+        const GDACS_RSS_PROXY = 'https://api.allorigins.win/raw?url=https://www.gdacs.org/xml/rss.xml';
+        const OPENWEATHER_API_KEY = '96078404bbc5c37abf72e77b4efb9573'; // Replace with your API key
+
+        async function getGDACSAlerts() {
+            try {
+                const response = await fetch(GDACS_RSS_PROXY);
+                const text = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(text, "text/xml");
+                return Array.from(xmlDoc.getElementsByTagName('item'));
+            } catch (error) {
+                console.error('Error fetching GDACS data:', error);
+                return [];
+            }
+        }
+
+        async function getWeatherAlerts(lat, lon) {
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly&appid=${OPENWEATHER_API_KEY}`);
+                const data = await response.json();
+                return data.alerts || [];
+            } catch (error) {
+                console.error('Error fetching weather alerts:', error);
+                return [];
+            }
+        }
+
+        async function getCoordinates(location) {
+            try {
+                const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${location},IN&limit=1&appid=${OPENWEATHER_API_KEY}`);
+                const data = await response.json();
+                if (data.length > 0) {
+                    return { lat: data[0].lat, lon: data[0].lon };
+                }
+                throw new Error('Location not found');
+            } catch (error) {
+                console.error('Error getting coordinates:', error);
+                throw error;
+            }
+        }
+
+        function parseGDACSAlert(item) {
+            const title = item.getElementsByTagName('title')[0].textContent;
+            const description = item.getElementsByTagName('description')[0].textContent;
+            const pubDate = item.getElementsByTagName('pubDate')[0].textContent;
+            const link = item.getElementsByTagName('link')[0].textContent;
+
+            // Extract alert level (Red, Orange, Green)
+            const alertLevel = title.includes('Red Alert') ? 'Red' : 
+                             title.includes('Orange Alert') ? 'Orange' : 'Green';
+
+            // Extract event type (EQ: Earthquake, FL: Flood, TC: Tropical Cyclone)
+            const eventType = title.includes('Earthquake') ? 'EQ' :
+                            title.includes('Flood') ? 'FL' :
+                            title.includes('Tropical Cyclone') ? 'TC' : 'OTHER';
+
+            return {
+                type: eventType,
+                title: title,
+                description: description,
+                time: new Date(pubDate).toLocaleString(),
+                severity: alertLevel,
+                link: link
+            };
+        }
+
+        function getAlertIcon(type) {
+            switch(type) {
+                case 'EQ':
+                    return '<i data-lucide="activity"></i>';
+                case 'FL':
+                    return '<i data-lucide="waves"></i>';
+                case 'TC':
+                    return '<i data-lucide="cloud-lightning"></i>';
+                default:
+                    return '<i data-lucide="alert-triangle"></i>';
+            }
+        }
+
+        async function searchLocation() {
+            const location = document.getElementById('locationInput').value;
+            if (!location) return;
+
+            try {
+                const coords = await getCoordinates(location);
+                document.getElementById('latInput').value = coords.lat;
+                document.getElementById('lonInput').value = coords.lon;
+                await searchByCoordinates();
+            } catch (error) {
+                document.getElementById('alertsContainer').innerHTML = `
+                    <div class="error">
+                        Unable to find location. Please check the spelling or try using coordinates.
+                    </div>
+                `;
+            }
+        }
+
+        async function searchByCoordinates() {
+            const lat = document.getElementById('latInput').value;
+            const lon = document.getElementById('lonInput').value;
+            
+            if (!lat || !lon) {
+                document.getElementById('alertsContainer').innerHTML = `
+                    <div class="error">
+                        Please enter both latitude and longitude.
+                    </div>
+                `;
+                return;
+            }
+
+            const alertsContainer = document.getElementById('alertsContainer');
+            alertsContainer.innerHTML = '<div class="loading">Fetching alerts...</div>';
+
+            try {
+                // Fetch both GDACS and weather alerts
+                const [gdacsItems, weatherAlerts] = await Promise.all([
+                    getGDACSAlerts(),
+                    getWeatherAlerts(lat, lon)
+                ]);
+
+                // Process GDACS alerts
+                const gdacsAlerts = gdacsItems
+                    .map(parseGDACSAlert)
+                    .filter(alert => {
+                        // Filter alerts relevant to the searched coordinates
+                        // This is a simplified filter - you might want to implement more sophisticated filtering
+                        return alert.description.toLowerCase().includes('india');
+                    });
+
+                // Combine and display alerts
+                const allAlerts = [...gdacsAlerts];
+
+                if (allAlerts.length === 0) {
+                    alertsContainer.innerHTML = `
+                        <div class="error">
+                            No active alerts found for this location.
+                        </div>
+                    `;
+                    return;
+                }
+
+                alertsContainer.innerHTML = allAlerts.map(alert => `
+                    <div class="alert-card ${alert.type}">
+                        <div class="alert-header">
+                            ${getAlertIcon(alert.type)}
+                            <span class="alert-type">${alert.title}</span>
+                        </div>
+                        <div class="alert-time">${alert.time}</div>
+                        <div>
+                            <span class="alert-severity severity-${alert.severity}">${alert.severity}</span>
+                        </div>
+                        <p>${alert.description}</p>
+                        <a href="${alert.link}" target="_blank" rel="noopener noreferrer">More details</a>
+                    </div>
+                `).join('');
+
+                // Initialize Lucide icons
+                lucide.createIcons();
+
+            } catch (error) {
+                alertsContainer.innerHTML = `
+                    <div class="error">
+                        Error fetching alerts. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize Lucide icons on page load
+        lucide.createIcons();
+    </script>
+</body>
+</html>

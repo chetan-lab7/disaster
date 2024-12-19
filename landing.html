@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Preparedness Landing Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@700&family=Montserrat:wght@700&family=Open+Sans:wght@400&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #7f26b3;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+        nav .logo h1 {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 1rem;
+            margin: 0;
+            padding: 0;
+        }
+        nav ul li {
+            margin: 0;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav .cta {
+            background-color: #1100ff;
+            border: none;
+            padding: 0.5rem 1rem;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        main {
+            padding: 2rem;
+            text-align: center;
+        }
+        #hero {
+            background-color: #e0f7fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        #hero h2 {
+            font-family: 'Lato', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        #hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .cta-buttons button {
+            background-color: #9b4caf;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 0 0.5rem;
+        }
+        .cta-buttons button:hover {
+            background-color: #9b4caf;
+        }
+        #features {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+        #features h2 {
+            font-family: 'Lato', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        #features p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        .feature-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .feature-card {
+            background-color: #f9f9f9;
+            padding: 1rem;
+            border-radius: 10px;
+            width: 200px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .feature-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .feature-card p {
+            font-size: 0.9rem;
+        }
+        footer {
+            background-color: #9b4caf;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1>SafeReady</h1>
+            </div>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="signup.html">Login/Signup</a></li>
+            </ul>
+            <button class="cta" onclick="window.location.href='signup.html'">Get Started</button>
+        </nav>
+    </header>
+    <main>
+        <section id="hero">
+            <h2>Be Prepared, Stay Safe – Your Disaster Readiness Hub.</h2>
+            <p>Real-time alerts, interactive tools, and resources to protect what matters most.</p>
+            <div class="cta-buttons">
+                <button onclick="location.href='#features'">Learn More</button>
+                <button onclick="location.href='signup.html'">Sign Up Now</button>
+            </div>
+        </section>
+        <section id="features">
+            <h2>Your One-Stop Solution for Disaster Preparedness and Emergency Response</h2>
+            <p>Explore our powerful features designed to keep you safe, informed, and prepared during emergencies.</p>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <img src="icons/bell-warning.png" alt="Real-Time Emergency Alerts">
+                    <h3>Real-Time Emergency Alerts</h3>
+                    <p>Stay updated with real-time alerts about disasters in your area. From severe weather conditions to earthquakes, we keep you informed with accurate and timely notifications.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/clipboard-check.png" alt="Interactive Disaster Preparedness Checklists">
+                    <h3>Interactive Disaster Preparedness Checklists</h3>
+                    <p>Build your personalized checklist to prepare for potential emergencies. From stocking supplies to planning evacuation routes, we've got you covered.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/map-pin.png" alt="Live Disaster Maps">
+                    <h3>Live Disaster Maps</h3>
+                    <p>View interactive maps showing affected areas, shelters, and nearby emergency facilities. Navigate to safety zones with ease.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/location-heart.png" alt="Safety Tracker for Families">
+                    <h3>Safety Tracker for Families</h3>
+                    <p>Share your location with loved ones during disasters and confirm their safety status in real time.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/open-book.png" alt="Educational Resources & Guides">
+                    <h3>Educational Resources & Guides</h3>
+                    <p>Learn about disaster preparedness and response through articles, videos, and expert tips. Empower yourself with knowledge.</p>
+                </div>
+            </div>
+            <div class="cta-buttons">
+                <button onclick="location.href='#features'">Explore Features</button>
+                <button onclick="location.href='signup.html'">Sign Up Now</button>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Disaster Preparedness. All rights reserved.</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>

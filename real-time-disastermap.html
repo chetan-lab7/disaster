@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangalore Disaster Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+        .header {
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #map { 
+            height: 70vh;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .info-panel {
+            padding: 1rem;
+            background: white;
+            height: 20vh;
+            overflow-y: auto;
+            border-top: 3px solid #0d47a1;
+        }
+        .disaster-alert {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid;
+            animation: fadeIn 0.5s ease-in;
+        }
+        .high-alert { 
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+        .medium-alert {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        .loader {
+            text-align: center;
+            padding: 1rem;
+            display: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Bangalore Real-Time Disaster Tracker</h1>
+    </div>
+    <div id="map"></div>
+    <div class="loader">Updating disaster data...</div>
+    <div class="info-panel">
+        <h2>Active Disasters</h2>
+        <div id="disaster-info"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.23.0/services/services-web.min.js"></script>
+    <script>
+        // API Keys
+        const WEATHER_API_KEY = '96078404bbc5c37abf72e77b4efb9573';
+        const TOMTOM_API_KEY = 'b4b231d7-5f18-45ca-9ca0-8b0d3cd5855a';
+        
+        // Initialize map
+        const map = L.map('map').setView([12.9716, 77.5946], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Custom markers
+        const markers = {};
+        const alertIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+
+        // Weather API
+        async function getWeatherDisasters() {
+    try {
+        console.log('Fetching weather data...');
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=12.9716&lon=77.5946&appid=${WEATHER_API_KEY}`;
+        console.log('Weather API URL:', url);
+        
+        const response = await fetch(url);
+        console.log('Weather API Status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`Weather API failed with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Weather Data:', data);
+        
+        const disasters = [];
+        if (data.rain || data.weather) {  // Modified condition
+            disasters.push({
+                id: 'weather-' + Date.now(),
+                type: 'Weather Alert',
+                position: [12.9716, 77.5946],
+                severity: 'High',
+                description: `Weather condition: ${data.weather[0].main}`
+            });
+        }
+        return disasters;
+    } catch (error) {
+        console.error('Weather API Error:', error);
+        document.getElementById('disaster-info').innerHTML = `API Error: ${error.message}`;
+        return [];
+    }
+}
+
+        // Traffic API
+        async function getTrafficIncidents() {
+    try {
+        console.log('Fetching traffic data...');
+        const bbox = '77.4601,12.9141,77.7065,13.0234';
+        // Updated TomTom API endpoint and parameters
+        const url = `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?key=${TOMTOM_API_KEY}&point=12.9716,77.5946&unit=KMPH`;
+        console.log('Traffic API URL:', url);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Traffic API failed with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Traffic Data:', data);
+        
+        // Process traffic flow data
+        return [{
+            id: 'traffic-' + Date.now(),
+            type: 'Traffic Flow',
+            position: [12.9716, 77.5946],
+            severity: data.flowSegmentData?.currentSpeed < 20 ? 'High' : 'Medium',
+            description: `Current Speed: ${data.flowSegmentData?.currentSpeed || 'N/A'} KMPH`
+        }];
+    } catch (error) {
+        console.error('Traffic API Error:', error);
+        return [];
+    }
+}
+
+        // Update markers and info
+        function updateMarkers(disasters) {
+            // Clear existing markers
+            Object.values(markers).forEach(marker => map.removeLayer(marker));
+            
+            disasters.forEach(disaster => {
+                const marker = L.marker(disaster.position, {
+                    icon: disaster.severity === 'High' ? alertIcon : L.Icon.Default()
+                })
+                .bindPopup(`
+                    <div class="disaster-alert ${disaster.severity.toLowerCase()}-alert">
+                        <strong>${disaster.type}</strong><br>
+                        ${disaster.description}<br>
+                        Severity: ${disaster.severity}
+                    </div>
+                `)
+                .addTo(map);
+                
+                markers[disaster.id] = marker;
+            });
+
+            // Update info panel
+            document.getElementById('disaster-info').innerHTML = disasters
+                .map(d => `
+                    <div class="disaster-alert ${d.severity.toLowerCase()}-alert">
+                        <strong>${d.type}</strong>: ${d.description}<br>
+                        <span>Severity: ${d.severity}</span>
+                    </div>
+                `).join('');
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Testing APIs...');
+    await getWeatherDisasters();
+    await getTrafficIncidents();
+});
+
+        // Main update function
+        async function updateDisasters() {
+            try {
+                document.querySelector('.loader').style.display = 'block';
+                const [weatherDisasters, trafficIncidents] = await Promise.all([
+                    getWeatherDisasters(),
+                    getTrafficIncidents()
+                ]);
+                
+                const allDisasters = [...weatherDisasters, ...trafficIncidents];
+                updateMarkers(allDisasters);
+            } catch (error) {
+                console.error('Update failed:', error);
+            } finally {
+                document.querySelector('.loader').style.display = 'none';
+            }
+        }
+
+        // Initialize and set update interval
+        updateDisasters();
+        setInterval(updateDisasters, 300000); // Update every 5 minutes
+        
+    </script>
+</body>
+</html>
